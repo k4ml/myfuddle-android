@@ -21,7 +21,7 @@
 <script>
 function searchProduct(tx, keyword) {
     var kw = '%' + keyword + '%';
-    tx.executeSql("SELECT * FROM halal_product WHERE name LIKE ?", [kw], querySuccess, errorCB);
+    tx.executeSql("SELECT * FROM swdata WHERE nama LIKE ?", [kw], querySuccess, errorCB);
 }
 
 function querySuccess(tx, results) {
@@ -29,7 +29,7 @@ function querySuccess(tx, results) {
     console.log("DEMO table: " + len + " rows found.");
     var list = $("<ul/>");
     for (var i=0; i<len; i++){
-        $(list).append($("<li/>", {text:results.rows.item(i).name + " Expired: " + results.rows.item(i).expired}));
+        $(list).append($("<li/>", {text:results.rows.item(i).nama + " Harga: " + results.rows.item(i).harga + " Premis: " + results.rows.item(i).premis}));
     }
 
     if (len === 0) {
