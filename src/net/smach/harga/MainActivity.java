@@ -16,8 +16,8 @@ public class MainActivity extends DroidGap {
         try
         {
             String pName = this.getClass().getPackage().getName();
-            this.copy("Databases.mp3","/data/data/"+pName+"/databases/");
-            this.copy("0000000000000001.mp3","/data/data/"+pName+"/databases/file__0/");
+            this.copy("Databases.db","/data/data/"+pName+"/databases/");
+            this.copy("0000000000000001.db","/data/data/"+pName+"/databases/file__0/");
         }
         catch (IOException e)
         {
@@ -36,17 +36,14 @@ public class MainActivity extends DroidGap {
     
     void copy(String file, String folder) throws IOException {
     	File CheckDirectory;
-    	String [] temp;
     	CheckDirectory = new File(folder);
     	if (!CheckDirectory.exists())
     	{ 
     		CheckDirectory.mkdir();
     	}
 
-		temp = file.split("\\.");
-		String newname = temp[0] + "db";
     	InputStream in = getApplicationContext().getAssets().open(file);
-    	OutputStream out = new FileOutputStream(folder+newname);
+    	OutputStream out = new FileOutputStream(folder+file);
 
     	// Transfer bytes from in to out
     	byte[] buf = new byte[1024];
