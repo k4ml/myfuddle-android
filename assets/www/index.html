@@ -1,6 +1,22 @@
 <!DOCTYPE HTML>
-<html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
 <head>
+  <!-- Set the viewport width to device width for mobile -->
+  <meta name="viewport" content="width=device-width" />
+  <!-- Included CSS Files (Compressed) -->
+  <link rel="stylesheet" href="stylesheets/foundation.min.css">
+  <link rel="stylesheet" href="stylesheets/app.css">
+
+  <script src="javascripts/modernizr.foundation.js"></script>
+
+  <!-- IE Fix for HTML5 Tags -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
 <title>Cordova</title>
 <script type="text/javascript" charset="utf-8" src="cordova-2.1.0.js"></script>
 <script type="text/javascript" charset="utf-8" src="SQLitePlugin.js"></script>
@@ -8,12 +24,15 @@
 <script src="http://debug.phonegap.com/target/target-script-min.js#halal"></script>
 </head>
 <body>
-<h1>Cari Status Halal</h1>
-<div align="center">
-	<input type="text" name="keyword" size="30" />
-</div>
-<div align="center">
-	<button type="button" id="btn_cari" />Cari</button>
+<h1>Cari Harga Barang</h1>
+<!-- Postfix action -->
+<div class="row collapse">
+    <div class="ten mobile-three columns">
+        <input type="text" name="keyword" />
+    </div>
+    <div class="two mobile-one columns">
+        <a class="button expand postfix" id="btn_cari">Cari</a>
+    </div>
 </div>
 <div id="search-result">
 
@@ -21,18 +40,30 @@
 <script>
 function searchProduct(tx, keyword) {
     var kw = '%' + keyword + '%';
-    tx.executeSql("SELECT * FROM swdata WHERE nama LIKE ?", [kw], querySuccess, errorCB);
+    tx.executeSql("SELECT * FROM data WHERE id = ?", [kw], querySuccess, errorCB);
 }
 
 function querySuccess(tx, results) {
     var len = results.rows.length;
     console.log("DEMO table: " + len + " rows found.");
-    var list = $("<ul/>");
+    var list = $("<dl/>").attr("class", "tabs mobile");
     for (var i=0; i<len; i++){
-        $(list).append($("<li/>", {text:results.rows.item(i).nama + " Harga: " + results.rows.item(i).harga + " Premis: " + results.rows.item(i).premis}));
+        $(list).append($("<dd/>", {text:results.rows.item(i).nama + " Harga: " + results.rows.item(i).harga + " Premis: " + results.rows.item(i).premis}));
     }
 
     if (len === 0) {
+        var url = 'http://harga.smach.net/';
+        console.log(url);
+        params = {
+            'q': 'beras',
+            'format': 'json'
+        }
+        $.getJSON(url, params, function(data) {
+            $.each(data['items'], function(index, item) {
+                console.log(item.nama);
+                $(list).append($("<li/>", {text:item.nama + " Harga: " + item.harga + " Premis: " + item.premis}));
+            });
+        });
         $(list).append($("<li/>", {text: "Tiada keputusan ditemui"}));
     }
 
@@ -44,19 +75,68 @@ function errorCB(err) {
     alert("Error processing SQL: "+err.code);
 }
 
-document.addEventListener("deviceready", onDeviceReady, false);
-function onDeviceReady() {
-	var db = window.sqlitePlugin.openDatabase("Databases", "1.0", "Halal", 1000000);
-	$('#btn_cari').click(function() {
-                var keyword = $("input[name=keyword]")[0].value;
-		db.transaction(function(tx) {
-                    searchProduct(tx, keyword);
-                }, errorCB);
-	});
+function populateDB(tx) {
+     tx.executeSql('CREATE TABLE IF NOT EXISTS data (id unique, data text)');
 }
+
+function getDB() {
+    var db = null;
+    try {
+        db = window.sqlitePlugin.openDatabase("Databases", "1.0", "Harga", 1000000);
+    }
+    catch (exception) {
+        console.log('DEBUG: ' + exception); 
+    }
+
+    if (!db) {
+        db = {};
+        db.transaction = function(queryCB, errorCB, successCB) {
+            console.log('DEBUG TX: ', this);
+            console.log('DEBUG: ' + queryCB, errorCB, successCB);
+            var that = this;
+            that.executeSql = function(query, kw, querySuccess, errorCB) {
+                console.log('DEBUG EXEC: '+ query);
+                var results = {
+                    rows: []
+                }
+                if (typeof querySuccess !== 'undefined') {
+                    querySuccess(that, results);
+                }
+            }
+            queryCB(that);
+        }
+    }
+    return db;
+}
+
+function onDeviceReady() {
+    var db = getDB();
+    db.transaction(populateDB, errorCB);
+
+    $('#btn_cari').click(function() {
+        var keyword = $("input[name=keyword]")[0].value;
+        db.transaction(function(tx) {
+            searchProduct(tx, keyword);
+        }, errorCB);
+    });
+}
+
+if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
+    document.addEventListener("deviceready", onDeviceReady, false);
+}
+else {
+    onDeviceReady();
+}
+
 function alertDismissed() {
     // do something
 }
 </script>
+  <!-- Included JS Files (Compressed) -->
+  <script src="javascripts/jquery.js"></script>
+  <script src="javascripts/foundation.min.js"></script>
+  
+  <!-- Initialize JS Plugins -->
+  <script src="javascripts/app.js"></script>
 </body>
 </html>
