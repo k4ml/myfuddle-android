@@ -1,90 +1,54 @@
-function searchProduct(tx, keyword) {
-    var kw = '%' + keyword + '%';
-    console.log("XXX: " + kw);
-    tx.executeSql("SELECT * FROM data WHERE id = ?", [kw], function(tx, results) {
-        querySuccess(tx, results, kw);    
-    }, errorCB);
-}
+function searchProduct(keyword) {
+    var kw_md5 = md5(keyword);
+    console.log("XXX: " + kw_md5);
+    var cached_data = window.localStorage.getItem(kw_md5);
 
-function querySuccess(tx, results, kw) {
-    var len = results.rows.length;
-    console.log("DEMO table: " + len + " rows found.");
-    var list = $("<ul/>").attr("class", "search-result");
-    for (var i=0; i<len; i++){
-        $(list).append($("<li/>", {text:results.rows.item(i).nama + " Harga: " + results.rows.item(i).harga + " Premis: " + results.rows.item(i).premis}));
-    }
-
-    if (len === 0) {
-        var url = 'http://harga.smach.net/';
-        console.log(url);
-        params = {
-            'q': kw,
-            'format': 'json'
-        }
-        $.getJSON(url, params, function(data) {
-            var count = 0;
-            $.each(data['items'], function(index, item) {
-                console.log(item.nama);
-                count++;
-                $(list).append($("<li/>", {text:item.nama + " Harga: " + item.harga + " Premis: " + item.premis + " Tarikh: " + item.tarikh}));
-            });
-            if (count == 0) {
-                $(list).append($("<li/>", {text: "Tiada keputusan ditemui"}));
-            }
+    if (cached_data) {
+        cached_data_json = $.parseJSON(cached_data);
+        var list = $("<ul/>").attr("class", "search-result");
+        $(list).append($("<li/>", {text: "Cached results. [Update]"}));
+        $.each(cached_data_json['items'], function(index, item) {
+            console.log(item.nama);
+            $(list).append($("<li/>", {text:item.nama + " Harga: " + item.harga + " Premis: " + item.premis + " Tarikh: " + item.tarikh}));
         });
+        $("#search-result").empty();
+        list.appendTo("#search-result");
+        return;
     }
 
-    $("#search-result").empty();
-    list.appendTo("#search-result");
-}
-
-function errorCB(err) {
-    alert("Error processing SQL: "+err.code);
-}
-
-function populateDB(tx) {
-     tx.executeSql('CREATE TABLE IF NOT EXISTS data (id unique, data text)');
-}
-
-function getDB() {
-    var db = null;
-    try {
-        db = window.sqlitePlugin.openDatabase("Databases", "1.0", "Harga", 1000000);
+    var url = 'http://harga.smach.net/';
+    console.log(url);
+    params = {
+        'q': keyword,
+        'format': 'json'
     }
-    catch (exception) {
-        console.log('DEBUG: ' + exception); 
-    }
-
-    if (!db) {
-        db = {};
-        db.transaction = function(queryCB, errorCB, successCB) {
-            console.log('DEBUG TX: ', this);
-            console.log('DEBUG: ' + queryCB, errorCB, successCB);
-            var that = this;
-            that.executeSql = function(query, kw, querySuccess, errorCB) {
-                console.log('DEBUG EXEC: '+ query);
-                var results = {
-                    rows: []
-                }
-                if (typeof querySuccess !== 'undefined') {
-                    querySuccess(that, results);
-                }
-            }
-            queryCB(that);
+    $.getJSON(url, params, function(data, status, jqxhr) {
+        var count = 0;
+        var list = $("<ul/>").attr("class", "search-result");
+        $.each(data['items'], function(index, item) {
+            console.log(item.nama);
+            count++;
+            $(list).append($("<li/>", {text:item.nama + " Harga: " + item.harga + " Premis: " + item.premis + " Tarikh: " + item.tarikh}));
+        });
+        if (count == 0) {
+            $(list).append($("<li/>", {text: "Tiada keputusan ditemui"}));
         }
-    }
-    return db;
+        else {
+            kw_md5 = md5(keyword);
+            json_text = jqxhr.responseText;
+            console.log('XXX: Result cached');
+            window.localStorage.setItem(kw_md5, json_text);
+        }
+        $("#search-result").empty();
+        list.appendTo("#search-result");
+    });
+
 }
 
 function onDeviceReady() {
-    var db = getDB();
-    db.transaction(populateDB, errorCB);
-
     $('#btn_cari').click(function() {
         var keyword = $("input[name=keyword]")[0].value;
-        db.transaction(function(tx) {
-            searchProduct(tx, keyword);
-        }, errorCB);
+        searchProduct(keyword);
     });
 }
 
