@@ -22,12 +22,16 @@ function querySuccess(tx, results, kw) {
             'format': 'json'
         }
         $.getJSON(url, params, function(data) {
+            var count = 0;
             $.each(data['items'], function(index, item) {
                 console.log(item.nama);
+                count++;
                 $(list).append($("<li/>", {text:item.nama + " Harga: " + item.harga + " Premis: " + item.premis + " Tarikh: " + item.tarikh}));
             });
+            if (count == 0) {
+                $(list).append($("<li/>", {text: "Tiada keputusan ditemui"}));
+            }
         });
-        $(list).append($("<li/>", {text: "Tiada keputusan ditemui"}));
     }
 
     $("#search-result").empty();
