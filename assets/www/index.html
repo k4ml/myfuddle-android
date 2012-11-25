@@ -39,10 +39,12 @@
 function searchProduct(tx, keyword) {
     var kw = '%' + keyword + '%';
     console.log("XXX: " + kw);
-    tx.executeSql("SELECT * FROM data WHERE id = ?", [kw], querySuccess, errorCB);
+    tx.executeSql("SELECT * FROM data WHERE id = ?", [kw], function(tx, results) {
+        querySuccess(tx, results, kw);    
+    }, errorCB);
 }
 
-function querySuccess(tx, results) {
+function querySuccess(tx, results, kw) {
     var len = results.rows.length;
     console.log("DEMO table: " + len + " rows found.");
     var list = $("<ul/>").attr("class", "search-result");
@@ -54,13 +56,13 @@ function querySuccess(tx, results) {
         var url = 'http://harga.smach.net/';
         console.log(url);
         params = {
-            'q': 'beras',
+            'q': kw,
             'format': 'json'
         }
         $.getJSON(url, params, function(data) {
             $.each(data['items'], function(index, item) {
                 console.log(item.nama);
-                $(list).append($("<li/>", {text:item.nama + " Harga: " + item.harga + " Premis: " + item.premis}));
+                $(list).append($("<li/>", {text:item.nama + " Harga: " + item.harga + " Premis: " + item.premis + " Tarikh: " + item.tarikh}));
             });
         });
         $(list).append($("<li/>", {text: "Tiada keputusan ditemui"}));
