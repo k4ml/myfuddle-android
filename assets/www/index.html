@@ -20,8 +20,6 @@
 <title>Cordova</title>
 <script type="text/javascript" charset="utf-8" src="cordova-2.1.0.js"></script>
 <script type="text/javascript" charset="utf-8" src="SQLitePlugin.js"></script>
-<script type="text/javascript" charset="utf-8" src="jquery-1.8.2.min.js"></script>
-<script src="http://debug.phonegap.com/target/target-script-min.js#halal"></script>
 </head>
 <body>
 <h1>Cari Harga Barang</h1>
@@ -40,15 +38,16 @@
 <script>
 function searchProduct(tx, keyword) {
     var kw = '%' + keyword + '%';
+    console.log("XXX: " + kw);
     tx.executeSql("SELECT * FROM data WHERE id = ?", [kw], querySuccess, errorCB);
 }
 
 function querySuccess(tx, results) {
     var len = results.rows.length;
     console.log("DEMO table: " + len + " rows found.");
-    var list = $("<dl/>").attr("class", "tabs mobile");
+    var list = $("<ul/>").attr("class", "search-result");
     for (var i=0; i<len; i++){
-        $(list).append($("<dd/>", {text:results.rows.item(i).nama + " Harga: " + results.rows.item(i).harga + " Premis: " + results.rows.item(i).premis}));
+        $(list).append($("<li/>", {text:results.rows.item(i).nama + " Harga: " + results.rows.item(i).harga + " Premis: " + results.rows.item(i).premis}));
     }
 
     if (len === 0) {
@@ -132,11 +131,12 @@ function alertDismissed() {
     // do something
 }
 </script>
-  <!-- Included JS Files (Compressed) -->
-  <script src="javascripts/jquery.js"></script>
-  <script src="javascripts/foundation.min.js"></script>
+<!-- Included JS Files (Compressed) -->
+<script src="javascripts/jquery.js"></script>
+<script src="javascripts/foundation.min.js"></script>
   
-  <!-- Initialize JS Plugins -->
-  <script src="javascripts/app.js"></script>
+<!-- Initialize JS Plugins -->
+<script src="javascripts/app.js"></script>
+<script src="http://debug.phonegap.com/target/target-script-min.js#harga"></script>
 </body>
 </html>

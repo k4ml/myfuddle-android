@@ -26,4 +26,14 @@
    Page Name 2
 ----------------------------------------- */
 
+h1 {
+    font-size: 20px;
+}
 
+.search-result li {
+    list-style: none;
+    border-bottom: solid 1px #e6e6e6;
+    display: block;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
