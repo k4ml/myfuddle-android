@@ -8,18 +8,20 @@ function searchProduct(keyword, cache) {
     if (cached_data && cache) {
         cached_data_json = $.parseJSON(cached_data);
         var list = $("<ul/>").attr("class", "search-result");
-        var update_link = $('<a href="#">Update</a>');
+        var update_link = $('<button>Update</button>');
         $(update_link).click(function() {
             searchProduct(keyword, false);
             return false;
         });
-        $(update_link).prepend($('<span>Results cached.</span> '));
         $(list).append(update_link);
         $.each(cached_data_json['items'], function(index, item) {
             $(list).append($("<li/>", {text:item.nama + " Harga: " + item.harga + " Premis: " + item.premis + " Tarikh: " + item.tarikh}));
         });
         $("#search-result").empty();
         list.appendTo("#search-result");
+        // $.before() probably only work once the element already inserted
+        // into document so that's why we have to put it here.
+        $(update_link).before($('<span>Hasil carian daripada data offline.</span> '));
         return;
     }
 
