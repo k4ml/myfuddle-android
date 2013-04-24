@@ -1,4 +1,4 @@
-package net.smach.harga;
+package net.smach.myfuddle;
 
 import java.io.*;
 import android.os.Bundle;
